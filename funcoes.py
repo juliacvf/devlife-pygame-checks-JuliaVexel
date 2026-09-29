@@ -17,7 +17,7 @@ def recebe_eventos():
     return game 
 
 def desenha(janela):
-    janela.fill((255, 0, 0))
+    janela.fill((0, 0, 0))
     pygame.display.update()
 
     return janela
