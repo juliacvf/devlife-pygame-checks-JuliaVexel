@@ -23,7 +23,7 @@ def inicializa():
 
     state = {
         'nave_pos': [135, 200],
-        'nave_vel': [100, 100],
+        'nave_vel': [5000, 2500],
         't0': 0,
         'fps': 0
     }
@@ -34,19 +34,51 @@ def inicializa():
 
 def atualiza_estado(state):
     game = True
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            game = False 
-            break
-
     t0 = state['t0']
     t1 = pygame.time.get_ticks()
     if t1 - t0 > 0:
         fps = 1000/(t1-t0)
         state['fps'] = fps
 
+    delta_t = (t1-t0)/1000
     state['t0'] = t1
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game = False 
+            break
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_DOWN:
+                y = state['nave_pos'][1] + state['nave_vel'][1]*delta_t
+                if y + 40 >= 240:
+                    y = 200
+                state['nave_pos'][1] = y
+
+            elif event.key == pygame.K_UP:
+                y = state['nave_pos'][1] - state['nave_vel'][1]*delta_t
+                if y < 0:
+                    y = 0
+                state['nave_pos'][1] = y
+
+            elif event.key == pygame.K_RIGHT:
+                x = state['nave_pos'][0] + state['nave_vel'][0]*delta_t
+                if x + 50 >= 320:
+                    x = 270
+                state['nave_pos'][0] = x
+           
+            elif event.key == pygame.K_LEFT:
+                x = state['nave_pos'][0] - state['nave_vel'][0]*delta_t
+                if x < 0:
+                    x = 0
+                state['nave_pos'][0] = x
+        
+
+
     return game 
+
+
+   
 
 def desenha(janela, assets, state):
     janela.fill((0, 0, 0))
