@@ -19,6 +19,8 @@ def inicializa():
         r = random.randint(1, 5)
         assets['estrelas'].append((x, y, r))
 
+    assets['coracoes'] = pygame.font.Font('assets/font/PressStart2P.ttf', 20)
+
     return janela, assets
 
 def recebe_eventos():
@@ -39,6 +41,9 @@ def desenha(janela, assets):
     branco = (255, 255, 255)
     for estrela in assets['estrelas']:
         pygame.draw.circle(janela, branco, (estrela[0], estrela[1]), estrela[2])
+
+    coracoes = assets['coracoes'].render(chr(9829) * 3, True, (255, 0, 0))
+    janela.blit(coracoes, (0,0))
     
     pygame.display.update()
 
