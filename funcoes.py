@@ -12,6 +12,12 @@ def inicializa():
     nave = pygame.image.load('assets/img/playerShip1_orange.png')
     assets['nave'] = pygame.transform.scale(nave, (50, 40))
 
+    pygame.mixer.music.load('assets/snd/tgfcoder-FrozenJam-SeamlessLoop.ogg')
+    assets['musica'] = False
+
+    tiro = pygame.mixer.Sound('assets/snd/pew.wav')
+    assets['tiro'] = tiro
+
     assets['estrelas'] = []
     for i in range(16):
         x = random.randint(0,320)
@@ -45,7 +51,7 @@ def inicializa():
 
     return janela, assets, state
 
-def atualiza_estado(state):
+def atualiza_estado(state, assets):
     game = True
     t0 = state['t0']
     t1 = pygame.time.get_ticks()
@@ -55,6 +61,10 @@ def atualiza_estado(state):
 
     delta_t = (t1-t0)/1000
     state['t0'] = t1
+
+    if assets['musica'] == False:
+        pygame.mixer.music.play()
+        assets['musica'] = True
 
     for meteoro in state['pos_meteoros']:
         ym = meteoro[1] + delta_t * state['vel_meteoros']
@@ -109,6 +119,9 @@ def atualiza_estado(state):
                     x = 0
                 state['nave_pos'][0] = x
 
+            elif event.key == pygame.K_SPACE:
+                assets['tiro'].play()
+
     return game 
 
 
@@ -141,7 +154,7 @@ def desenha(janela, assets, state):
     return janela
 
 def game_loop(janela, assets, state):
-    while atualiza_estado(state):
+    while atualiza_estado(state, assets):
         desenha(janela, assets, state)
 
 if __name__ == '__main__':
