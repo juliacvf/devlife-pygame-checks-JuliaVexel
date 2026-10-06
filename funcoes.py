@@ -4,11 +4,12 @@ import random
 def inicializa():
     pygame.init()
     
-    janela = pygame.display.set_mode((320, 240))
+    janela = pygame.display.set_mode((1000, 800))
     pygame.display.set_caption("Jogo da Julia")
     
     assets = {}
-    assets['fundo'] = pygame.image.load('assets/img/starfield.png')
+    fundo = pygame.image.load('assets/img/starfield.png')
+    assets['fundo'] = pygame.transform.scale(fundo, (1000, 800))
     nave = pygame.image.load('assets/img/playerShip1_orange.png')
     assets['nave'] = pygame.transform.scale(nave, (50, 40))
 
@@ -19,17 +20,17 @@ def inicializa():
     assets['tiro'] = tiro
 
     assets['estrelas'] = []
-    for i in range(16):
-        x = random.randint(0,320)
-        y = random.randint(0, 240)
+    for i in range(41):
+        x = random.randint(0,1000)
+        y = random.randint(0, 800)
         r = random.randint(1, 5)
         assets['estrelas'].append((x, y, r))
 
     assets['coracoes'] = pygame.font.Font('assets/font/PressStart2P.ttf', 20)
 
     state = {
-        'nave_pos': [135, 200],
-        'nave_vel': [7000, 5000],
+        'nave_pos': [500, 760],
+        'nave_vel': [200, 155],
         'vidas': 3,
         't0': 0,
         'fps': 0
@@ -40,12 +41,12 @@ def inicializa():
     meteoros = pygame.image.load('assets/img/meteorBrown_med1.png')
     assets['meteoros'] = pygame.transform.scale(meteoros, (25,15))
     state['pos_meteoros'] = []
-    for i in range(5):
-        x = random.randint(0,320)
-        y = random.randint(0, 240)
+    for i in range(18):
+        x = random.randint(0,1000)
+        y = random.randint(0, 800)
         state['pos_meteoros'].append([x, y])
 
-    state['vel_meteoros'] = 100
+    state['vel_meteoros'] = 200
     
         
 
@@ -69,10 +70,11 @@ def atualiza_estado(state, assets):
     for meteoro in state['pos_meteoros']:
         ym = meteoro[1] + delta_t * state['vel_meteoros']
 
-        if ym >= 240:
-            ym = random.randint(-300, -15)
-            meteoro[0] = random.randint(0, 320-25)
+        if ym >= 800:
+            ym = random.randint(-500, -50)
 
+            meteoro[0] = random.randint(0, 950) 
+        
         meteoro[1] = ym
 
         rect_meteoro = pygame.Rect(meteoro[0], meteoro[1], 25, 15)
@@ -84,8 +86,8 @@ def atualiza_estado(state, assets):
                 game = False 
                 break
 
-            meteoro[0] = random.randint(0, 320-25)
-            meteoro[1] = random.randint(-300, -15)
+            meteoro[0] = random.randint(0, 950)
+            meteoro[1] = random.randint(-500, -50)
 
 
     for event in pygame.event.get():
@@ -94,33 +96,36 @@ def atualiza_estado(state, assets):
             game = False 
             break
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_DOWN:
-                y = state['nave_pos'][1] + state['nave_vel'][1]*delta_t
-                if y + 40 >= 240:
-                    y = 200
-                state['nave_pos'][1] = y
-
-            elif event.key == pygame.K_UP:
-                y = state['nave_pos'][1] - state['nave_vel'][1]*delta_t
-                if y < 0:
-                    y = 0
-                state['nave_pos'][1] = y
-
-            elif event.key == pygame.K_RIGHT:
-                x = state['nave_pos'][0] + state['nave_vel'][0]*delta_t
-                if x + 50 >= 320:
-                    x = 270
-                state['nave_pos'][0] = x
-           
-            elif event.key == pygame.K_LEFT:
-                x = state['nave_pos'][0] - state['nave_vel'][0]*delta_t
-                if x < 0:
-                    x = 0
-                state['nave_pos'][0] = x
-
-            elif event.key == pygame.K_SPACE:
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
                 assets['tiro'].play()
+
+        
+    teclas = pygame.key.get_pressed()
+
+    if teclas[pygame.K_DOWN] or teclas[pygame.K_s]:
+        y = state['nave_pos'][1] + state['nave_vel'][1]*delta_t
+        if y + 40 >= 800:
+            y = 760
+        state['nave_pos'][1] = y
+
+    elif teclas[pygame.K_UP] or teclas[pygame.K_w]:
+        y = state['nave_pos'][1] - state['nave_vel'][1]*delta_t
+        if y < 0:
+            y = 760
+        state['nave_pos'][1] = y
+
+    elif teclas[pygame.K_RIGHT] or teclas[pygame.K_d]:
+        x = state['nave_pos'][0] + state['nave_vel'][0]*delta_t
+        if x + 50 >= 1000:
+            x = 950
+        state['nave_pos'][0] = x
+    
+    elif teclas[pygame.K_LEFT] or teclas[pygame.K_a]:
+        x = state['nave_pos'][0] - state['nave_vel'][0]*delta_t
+        if x < 0:
+            x = 0
+        state['nave_pos'][0] = x
 
     return game 
 
@@ -129,11 +134,12 @@ def desenha(janela, assets, state):
     janela.fill((0, 0, 0))
 
     janela.blit(assets['fundo'], (0, 0))
-    janela.blit(assets['nave'], state['nave_pos'])
-
+    
     branco = (255, 255, 255)
     for estrela in assets['estrelas']:
         pygame.draw.circle(janela, branco, (estrela[0], estrela[1]), estrela[2])
+    
+    janela.blit(assets['nave'], state['nave_pos'])
 
     coracoes_vidas = assets['coracoes'].render(chr(9829) * state['vidas'], True, (255, 0, 0))
     janela.blit(coracoes_vidas, (0,0))
