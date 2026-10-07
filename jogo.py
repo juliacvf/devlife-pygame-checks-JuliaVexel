@@ -1,5 +1,6 @@
-from funcoes import inicializa
-from funcoes import game_loop
+from classes import Jogo
 
-janela, assets, state = inicializa()
-game_loop(janela, assets, state)
+if __name__ == "__main__":
+    jogo = Jogo()
+    
+    jogo.game_loop()
