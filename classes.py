@@ -115,7 +115,34 @@ class Tiro(pygame.sprite.Sprite):
     def movimento_tiro(self, delta_t):
         self.rect.y = self.rect.y - delta_t * self.velocidade_tiro
 
+class Explosao(pygame.sprite.Sprite):
+    def __init__(self, posicao):
+        super().__init__()
 
+        self.imagens = []
+        for i in range(9):
+            self.imagens.append(pygame.image.load(f'assets/img/regularExplosion{i:02d}.png'))
+
+        self.indice = 0
+        self.tempo = 0
+        self.duracao = 0.06
+        self.image = self.imagens[0]
+        self.rect = self.image.get_rect(center=posicao)
+
+    def atualiza_explosao(self, delta_t):
+        self.tempo += delta_t
+
+        while self.tempo >= self.duracao:
+            self.tempo -= self.duracao
+            self.indice += 1
+
+            if self.indice >= len(self.imagens):
+                self.kill()
+                return
+
+            self.image = self.imagens[self.indice]
+            
+        
 class Tela_Jogo(Telas):
     def __init__(self, vidas_max, vidas, qtd_meteoros):
         super().__init__((0, 0, 0))
@@ -140,6 +167,8 @@ class Tela_Jogo(Telas):
 
         self.tiros = pygame.sprite.Group()
 
+        self.explosao = pygame.sprite.Group()
+
         self.meteoros = pygame.sprite.Group()
         for i in range(qtd_meteoros):
             x = random.randint(0, 1000)
@@ -159,6 +188,8 @@ class Tela_Jogo(Telas):
         window.blit(self.nave.image, self.nave.rect)
 
         self.tiros.draw(window)
+
+        self.explosao.draw(window)
 
         coracoes_vidas = self.coracoes.render(chr(9829) * self.vidas, True, (255, 0, 0))
         window.blit(coracoes_vidas, (0, 0))
@@ -200,6 +231,8 @@ class Jogo:
 
         self.grupo_tiro = self.tela_jogo.tiros
 
+        self.explosoes = self.tela_jogo.explosao
+
     def verifica_colisoes(self):
         colisoes_nave = pygame.sprite.groupcollide(self.meteoros, self.grupo_nave, False, False)
         colisoes_tiro = pygame.sprite.groupcollide(self.meteoros, self.grupo_tiro, True, True)
@@ -215,6 +248,8 @@ class Jogo:
 
         if colisoes_tiro:
             for meteoro in colisoes_tiro:
+                self.explosoes.add(Explosao(meteoro.rect.center))
+
                 x = random.randint(0, 1000 - meteoro.rect.width)
                 y = random.randint(-500, -50)
                 self.meteoros.add(Meteoro(200, [x, y]))
@@ -243,6 +278,9 @@ class Jogo:
         
         for tiro in self.grupo_tiro:
             tiro.movimento_tiro(delta_t)
+
+        for explosao in self.explosoes:
+            explosao.atualiza_explosao(delta_t)
 
         self.verifica_colisoes()
         
@@ -278,6 +316,7 @@ class Jogo:
                             self.nave = self.tela_jogo.nave
                             self.meteoros = self.tela_jogo.meteoros
                             self.grupo_tiro = self.tela_jogo.tiros
+                            self.explosoes = self.tela_jogo.explosao
                             self.grupo_nave = pygame.sprite.Group(self.nave)
                             self.tela_atual = "inicio"
 

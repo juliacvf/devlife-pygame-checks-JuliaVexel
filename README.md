@@ -4,7 +4,8 @@ Este é um projeto desenvolvido na disciplina Developer Life, do 1° semestre do
 
 ## Descrição do jogo
 
-[ADICIONE AQUI UMA DESCRIÇÃO DO JOGO]
+Controle uma nave em meio a uma chuva de meteoros no espaço sideral. 
+Desvie dos obstáculos, destrua os meteoros com seus tiros e sobreviva pelo maior tempo possível.
 
 ## Como jogar
 
@@ -16,4 +17,6 @@ pip install pygame
 
 Após instalar a biblioteca, clone este repositório e execute o arquivo jogo.py, dentro da pasta codigo. O jogo será aberto em uma nova janela e pode ser jogado com as seguintes teclas:
 
-[ADICIONE AQUI AS INSTRUÇÕES DO JOGO]
+Na tela inicial, pressione espaço para iniciar o jogo. Na tela de game over pressione espaço para retornar para a tela inicial.
+
+Utilize as setas ou as teclas a/w/s/d para controlar a nave e a tecla de espaço para disparar os tiros.
