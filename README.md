@@ -17,6 +17,6 @@ pip install pygame
 
 Após instalar a biblioteca, clone este repositório e execute o arquivo jogo.py, dentro da pasta codigo. O jogo será aberto em uma nova janela e pode ser jogado com as seguintes teclas:
 
-Na tela inicial, pressione espaço para iniciar o jogo. Na tela de game over pressione espaço para retornar para a tela inicial.
+Na tela inicial, pressione espaço para iniciar o jogo. Na tela de game over, pressione espaço para retornar para a tela inicial.
 
 Utilize as setas ou as teclas a/w/s/d para controlar a nave e a tecla de espaço para disparar os tiros.
