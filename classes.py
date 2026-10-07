@@ -53,6 +53,33 @@ class Nave(pygame.sprite.Sprite):
         self.velocidade_nave = velocidade_nave
         self.rect.midbottom = posicao_nave
 
+    def movimento_nave(self, delta_t):
+        teclas = pygame.key.get_pressed()
+                
+        if teclas[pygame.K_DOWN] or teclas[pygame.K_s]:
+            y = self.rect.y + self.velocidade_nave[1]*delta_t
+            if y + 40 >= 800:
+                y = 760
+            self.rect.y = y
+    
+        elif teclas[pygame.K_UP] or teclas[pygame.K_w]:
+            y = self.rect.y - self.velocidade_nave[1]*delta_t
+            if y < 0:
+                y = 760
+            self.rect.y = y
+    
+        elif teclas[pygame.K_RIGHT] or teclas[pygame.K_d]:
+            x = self.rect.x + self.velocidade_nave[0]*delta_t
+            if x + 50 >= 1000:
+                x = 950
+            self.rect.x = x
+        
+        elif teclas[pygame.K_LEFT] or teclas[pygame.K_a]:
+            x = self.rect.x - self.velocidade_nave[0]*delta_t
+            if x < 0:
+                x = 0
+            self.rect.x = x
+
 
 class Meteoro(pygame.sprite.Sprite):
     def __init__(self, velocidade_meteoro, posicao_meteoro):
@@ -60,9 +87,33 @@ class Meteoro(pygame.sprite.Sprite):
 
         self.image = pygame.image.load('assets/img/meteorBrown_med1.png')
         self.rect = self.image.get_rect()
-        self.rect.topleft = posicao_meteoro
 
         self.velocidade_meteoro = velocidade_meteoro
+        self.rect.topleft = posicao_meteoro
+
+    def movimento_meteoro(self, delta_t):
+        ym = self.rect.y + delta_t * self.velocidade_meteoro
+
+        if ym >= 800:
+            ym = random.randint(-500, -50)
+            self.rect.x = random.randint(0, 1000 - self.rect.width) 
+        
+        self.rect.y = ym
+
+
+class Tiro(pygame.sprite.Sprite):
+    def __init__(self, velocidade_tiro, posicao_tiro):
+        super().__init__()
+
+        tiro = pygame.image.load('assets/img/laserRed16.png')
+        self.image = pygame.transform.scale(tiro, (10, 10))
+        self.rect = self.image.get_rect()
+
+        self.velocidade_tiro = velocidade_tiro
+        self.rect.midbottom = posicao_tiro
+
+    def movimento_tiro(self, delta_t):
+        self.rect.y = self.rect.y - delta_t * self.velocidade_tiro
 
 
 class Tela_Jogo(Telas):
@@ -87,6 +138,8 @@ class Tela_Jogo(Telas):
 
         self.nave = Nave([200, 155], (500, 800))
 
+        self.tiros = pygame.sprite.Group()
+
         self.meteoros = pygame.sprite.Group()
         for i in range(qtd_meteoros):
             x = random.randint(0, 1000)
@@ -102,7 +155,10 @@ class Tela_Jogo(Telas):
             pygame.draw.circle(window, (255, 255, 255), (estrela[0], estrela[1]), estrela[2])
 
         self.meteoros.draw(window)
+
         window.blit(self.nave.image, self.nave.rect)
+
+        self.tiros.draw(window)
 
         coracoes_vidas = self.coracoes.render(chr(9829) * self.vidas, True, (255, 0, 0))
         window.blit(coracoes_vidas, (0, 0))
@@ -133,13 +189,35 @@ class Jogo:
         self.fps = 0
 
         self.tela_jogo = Tela_Jogo(3, 3, 18)
+        self.tela_inicial = Tela_Inicial()
+        self.tela_game_over = Tela_GameOver()
+        self.tela_atual = "inicio"
+
         self.nave = self.tela_jogo.nave
         self.grupo_nave = pygame.sprite.Group(self.nave)
 
-        self.tela_inicial = Tela_Inicial()
-        self.tela_game_over = Tela_GameOver()
+        self.meteoros = self.tela_jogo.meteoros
 
-        self.tela_atual = "inicio"
+        self.grupo_tiro = self.tela_jogo.tiros
+
+    def verifica_colisoes(self):
+        colisoes_nave = pygame.sprite.groupcollide(self.meteoros, self.grupo_nave, False, False)
+        colisoes_tiro = pygame.sprite.groupcollide(self.meteoros, self.grupo_tiro, True, True)
+
+        if colisoes_nave:
+            self.tela_jogo.vidas -= 1
+            if self.tela_jogo.vidas <= 0:
+                self.tela_atual = "game_over"
+            
+            for meteoro in colisoes_nave:
+                meteoro.rect.x = random.randint(0, 1000 - meteoro.rect.width)
+                meteoro.rect.y = random.randint(-500, -50)
+
+        if colisoes_tiro:
+            for meteoro in colisoes_tiro:
+                x = random.randint(0, 1000 - meteoro.rect.width)
+                y = random.randint(-500, -50)
+                self.meteoros.add(Meteoro(200, [x, y]))
 
     def atualiza_estado(self):
         self.t0, delta_t, self.fps = calcula_tempo(self.t0)
@@ -154,56 +232,19 @@ class Jogo:
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    tiro = Tiro(200, self.nave.rect.midtop)
+                    self.grupo_tiro.add(tiro)
                     self.som_tiro.play()
+
+        self.nave.movimento_nave(delta_t)
+
+        for meteoro in self.meteoros:
+            meteoro.movimento_meteoro(delta_t)
         
+        for tiro in self.grupo_tiro:
+            tiro.movimento_tiro(delta_t)
 
-        for meteoro in self.tela_jogo.meteoros:
-            ym = meteoro.rect.y + delta_t * meteoro.velocidade_meteoro
-
-            if ym >= 800:
-                ym = random.randint(-500, -50)
-
-                meteoro.rect.x = random.randint(0, 950) 
-            
-            meteoro.rect.y = ym
-
-        colisao = pygame.sprite.groupcollide(self.tela_jogo.meteoros, self.grupo_nave, False, False)
-        
-        if colisao:
-            self.tela_jogo.vidas -= 1
-            if self.tela_jogo.vidas <= 0:
-                self.tela_atual = "game_over"
-            
-            for meteoro in colisao:
-                meteoro.rect.x = random.randint(0, 950)
-                meteoro.rect.y = random.randint(-500, -50)
-
-
-        teclas = pygame.key.get_pressed()
-        
-        if teclas[pygame.K_DOWN] or teclas[pygame.K_s]:
-            y = self.nave.rect.y + self.nave.velocidade_nave[1]*delta_t
-            if y + 40 >= 800:
-                y = 760
-            self.nave.rect.y = y
-    
-        elif teclas[pygame.K_UP] or teclas[pygame.K_w]:
-            y = self.nave.rect.y - self.nave.velocidade_nave[1]*delta_t
-            if y < 0:
-                y = 760
-            self.nave.rect.y = y
-    
-        elif teclas[pygame.K_RIGHT] or teclas[pygame.K_d]:
-            x = self.nave.rect.x + self.nave.velocidade_nave[0]*delta_t
-            if x + 50 >= 1000:
-                x = 950
-            self.nave.rect.x = x
-        
-        elif teclas[pygame.K_LEFT] or teclas[pygame.K_a]:
-            x = self.nave.rect.x - self.nave.velocidade_nave[0]*delta_t
-            if x < 0:
-                x = 0
-            self.nave.rect.x = x
+        self.verifica_colisoes()
         
         return True
 
@@ -211,22 +252,18 @@ class Jogo:
         rodando = True
 
         while rodando:
-            # 1. Desenha a tela atual
             if self.tela_atual == "inicio":
                 self.tela_inicial.desenha_inicio(self.window)
 
             elif self.tela_atual == "jogando":
                 self.tela_jogo.desenha_jogo(self.window, self.fps)
                 pygame.display.update()
+                rodando = self.atualiza_estado()
 
             elif self.tela_atual == "game_over":
                 self.tela_game_over.desenha_game_over(self.window)
 
-            # 2. Executa as ações daquela tela
-            if self.tela_atual == "jogando":
-                rodando = self.atualiza_estado()
-
-            else:
+            if self.tela_atual != "jogando":
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         rodando = False
@@ -239,6 +276,8 @@ class Jogo:
                         elif self.tela_atual == "game_over":
                             self.tela_jogo = Tela_Jogo(3, 3, 18)
                             self.nave = self.tela_jogo.nave
+                            self.meteoros = self.tela_jogo.meteoros
+                            self.grupo_tiro = self.tela_jogo.tiros
                             self.grupo_nave = pygame.sprite.Group(self.nave)
                             self.tela_atual = "inicio"
 
