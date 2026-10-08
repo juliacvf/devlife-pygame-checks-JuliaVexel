@@ -32,6 +32,9 @@ class Tela_GameOver(Telas):
         super().__init__((36, 71, 107))
 
         self.titulo = pygame.font.Font('assets/font/PressStart2P.ttf', 40)
+
+        self.record = 0
+        self.texto_record = pygame.font.Font('assets/font/PressStart2P.ttf', 20)
     
     def desenha_game_over (self, window):
         self.desenha(window)
@@ -39,6 +42,10 @@ class Tela_GameOver(Telas):
         titulo = self.titulo.render("Game Over", True, (134, 43, 53))
         posicao = titulo.get_rect(center=(self.largura // 2, self.altura // 2))
         window.blit(titulo, posicao)
+
+        record = self.texto_record.render(f"Recorde: {self.record}", True, (164, 106, 69))
+        posicao_record = record.get_rect(center=(self.largura // 2, self.altura // 2 + 75))
+        window.blit(record, posicao_record)
         pygame.display.update()
 
 
@@ -141,8 +148,26 @@ class Explosao(pygame.sprite.Sprite):
                 return
 
             self.image = self.imagens[self.indice]
-            
-        
+
+
+class Pontuacao(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+        self.pontuacao = 0
+        self.tempo = 0
+
+    def atualiza_pontuacao_tempo(self, delta_t):
+        self.tempo += delta_t
+
+        while self.tempo >= 1:
+            self.tempo -= 1
+            self.pontuacao += 1
+
+    def atualiza_pontuacao_meteoro(self):
+        self.pontuacao += 3
+
+
 class Tela_Jogo(Telas):
     def __init__(self, vidas_max, vidas, qtd_meteoros):
         super().__init__((0, 0, 0))
@@ -168,6 +193,9 @@ class Tela_Jogo(Telas):
         self.tiros = pygame.sprite.Group()
 
         self.explosao = pygame.sprite.Group()
+
+        self.placar = Pontuacao()
+        self.fonte_pontuacao = pygame.font.Font('assets/font/PressStart2P.ttf', 10)
 
         self.meteoros = pygame.sprite.Group()
         for i in range(qtd_meteoros):
@@ -201,6 +229,9 @@ class Tela_Jogo(Telas):
         x_fps = window.get_width() - texto_fps.get_width()
         window.blit(texto_fps, (x_fps, 0))
 
+        pontuacao = self.fonte_pontuacao.render(f'Pontuação: {self.placar.pontuacao} ', True, (255, 255, 255))
+        window.blit(pontuacao, (0, 30))
+
 
 class Jogo:
     def __init__(self):
@@ -233,6 +264,7 @@ class Jogo:
 
         self.explosoes = self.tela_jogo.explosao
 
+
     def verifica_colisoes(self):
         colisoes_nave = pygame.sprite.groupcollide(self.meteoros, self.grupo_nave, False, False)
         colisoes_tiro = pygame.sprite.groupcollide(self.meteoros, self.grupo_tiro, True, True)
@@ -240,6 +272,8 @@ class Jogo:
         if colisoes_nave:
             self.tela_jogo.vidas -= 1
             if self.tela_jogo.vidas <= 0:
+                if self.tela_jogo.placar.pontuacao > self.tela_game_over.record:
+                    self.tela_game_over.record = self.tela_jogo.placar.pontuacao
                 self.tela_atual = "game_over"
             
             for meteoro in colisoes_nave:
@@ -248,6 +282,7 @@ class Jogo:
 
         if colisoes_tiro:
             for meteoro in colisoes_tiro:
+                self.tela_jogo.placar.atualiza_pontuacao_meteoro()
                 self.explosoes.add(Explosao(meteoro.rect.center))
 
                 x = random.randint(0, 1000 - meteoro.rect.width)
@@ -283,6 +318,8 @@ class Jogo:
             explosao.atualiza_explosao(delta_t)
 
         self.verifica_colisoes()
+
+        self.tela_jogo.placar.atualiza_pontuacao_tempo(delta_t)
         
         return True
 
