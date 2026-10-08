@@ -6,6 +6,8 @@ from funcoes import calcula_tempo
 class Telas:
     def __init__(self, cor):
         self.cor = cor
+        self.altura = 800
+        self.largura = 1000
 
     def desenha(self, window):
         window.fill(self.cor) 
