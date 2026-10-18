@@ -20,3 +20,58 @@ Após instalar a biblioteca, clone este repositório e execute o arquivo jogo.py
 Na tela inicial, pressione espaço para iniciar o jogo. Na tela de game over, pressione espaço para retornar para a tela inicial.
 
 Utilize as setas ou as teclas a/w/s/d para controlar a nave e a tecla de espaço para disparar os tiros.
+
+
+## Prova de pygame:
+
+NO INÌCIO:
+
+def atualiza_estado():
+    game = True
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game = False 
+            break
+
+    return game 
+
+def game_loop(window):
+    while atualiza_estado():
+        desenha(window)
+
+
+RODAR O JOGO:
+
+import pygame
+from funcoes import inicializa
+from funcoes import game_loop
+
+window = inicializa()
+game_loop(window)
+pygame.quit()
+
+
+COLISOES COM PONTO:
+
+if event.type == pygame.MOUSEBUTTONDOWN:
+    if event.button == 1:
+        ponto_x, ponto_y = event.pos
+
+def colisao_ponto_circulo(ponto_x, ponto_y, circulo_x, circulo_y, circulo_raio):
+    d = ((circulo_x - ponto_x)**2 + (circulo_y - ponto_y)**2)**0.5
+
+    if d <= circulo_raio:
+        return True
+    else:
+        return False 
+
+def colisao_ponto_retangulo(ponto_x, ponto_y, rect_x, rect_y, rect_w, rect_h):
+    if (
+        rect_x <= ponto_x and 
+        ponto_x <= rect_x + rect_w and 
+        rect_y <= ponto_y and 
+        ponto_y <= rect_y + rect_h
+    ):
+        return True
+    else:
+        return False
