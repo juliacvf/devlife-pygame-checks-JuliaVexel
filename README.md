@@ -32,7 +32,6 @@ def atualiza_estado():
         if event.type == pygame.QUIT:
             game = False 
             break
-
     return game 
 
 def game_loop(window):
@@ -72,6 +71,27 @@ def colisao_ponto_retangulo(ponto_x, ponto_y, rect_x, rect_y, rect_w, rect_h):
         rect_y <= ponto_y and 
         ponto_y <= rect_y + rect_h
     ):
+        return True
+    else:
+        return False
+
+
+COLISÕES ENTRE FORMAS:
+
+def colisao_circulos(c1_x, c1_y, c2_x, c2_y, c1_raio, c2_raio)
+    distancia_centros = ((cx1 - cx2)**2 + (cy1 - cy2)**2)**0.5
+    if distancia_centros <= raio1 + raio2:
+        return True
+    else:
+        return False
+
+def colisao_retangulos(x1, y1, x2, y2, largura1, altura1, largura2, altura2):
+    if (
+    x1 < x2 + largura2 and
+    x1 + largura1 > x2 and
+    y1 < y2 + altura2 and
+    altura1 + y1 > y2
+):
         return True
     else:
         return False
